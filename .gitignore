@@ -1,0 +1,8 @@
+# Claude Code local settings — machine-specific permissions, not shared.
+# .claude/launch.json IS tracked: it defines the dev server used for testing.
+.claude/settings.local.json
+
+# OS cruft
+Thumbs.db
+desktop.ini
+.DS_Store

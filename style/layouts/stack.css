@@ -1,0 +1,35 @@
+/* ------------------------------------------------------------------ *
+ * Layout: "Stack" (.layout-stack on #mainFrame)
+ *   Title/signature use the same two-cell table as "Side by side", but hug the
+ *   centre (Hindi right, Urdu left) so they sit over the body rather than out
+ *   at the half-column centres — the body here is one centred column: the
+ *   whole Hindi body first, then the whole Urdu body.
+ * ------------------------------------------------------------------ */
+
+/* Pull the pair together at the centre. This overrides the shared
+ * `.titleCell, .signatureCell { text-align: center }` default in style.css —
+ * `.layout-stack .titleCell.hindiCell` is 0,3,0 against the default's 0,1,0,
+ * so it wins regardless of file order. Same approach as one-pair.css. */
+.layout-stack .titleCell.hindiCell,
+.layout-stack .signatureCell.hindiCell {
+  text-align: right;
+}
+
+.layout-stack .titleCell.urduCell,
+.layout-stack .signatureCell.urduCell {
+  text-align: left;
+}
+
+.layout-stack .stackBody {
+  width: 100%;
+}
+
+/* Each line sits on its own centered row; the line block itself is an
+ * inline-block (justified) created in JS.
+ * Deliberately NOT `overflow: hidden` — Nastaliq descenders reach below the
+ * row box and clipping them cut the tails off the text. They paint into the
+ * neighbouring row instead; `.mainFrame` still clips at the image edge. */
+.layout-stack .stackRow {
+  text-align: center;
+  white-space: nowrap;
+}

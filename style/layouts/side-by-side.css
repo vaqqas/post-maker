@@ -1,0 +1,32 @@
+/* ------------------------------------------------------------------ *
+ * Layout: "Side by side" (.layout-sideBySide on #mainFrame)
+ *   Title / signature centered in each cell; body is a per-line table.
+ * ------------------------------------------------------------------ */
+/* Title / signature centering is the shared default in style.css, so this
+ * layout declares nothing. `onePair` and `stack` both override it to hug the
+ * centre; this is the one layout that keeps each cell's text centered. */
+
+/* No `overflow: hidden` here — see the note on the cells below. */
+.layout-sideBySide .bodyArea {
+  width: 100%;
+}
+
+/* Body line rows (generated). One <tr> per line: Hindi on the left, Urdu on
+ * the right. Row height is set inline from the font size. */
+.layout-sideBySide .bodyLines {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* Deliberately NOT `overflow: hidden`. Nastaliq descenders reach well below
+ * the row box (Noto Nastaliq Urdu at 60px overshoots by ~15px), and clipping
+ * them sliced the tails off the text. Letting them paint into the neighbouring
+ * row is the lesser evil — `.mainFrame` still clips at the image edge, so
+ * nothing escapes the 1080x1350. */
+.layout-sideBySide .bodyLines td {
+  box-sizing: border-box;
+  vertical-align: middle;
+  white-space: nowrap; /* each visual line is a single row */
+  text-align: center; /* the line block is centered within its cell */
+}

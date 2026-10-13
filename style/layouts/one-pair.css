@@ -1,0 +1,44 @@
+/* ------------------------------------------------------------------ *
+ * Layout: "One pair at a page" (.layout-onePair on #mainFrame)
+ *   Title/signature hug the centre (Hindi right, Urdu left). Body is a single
+ *   centered column of justified lines. A page number sits at the bottom.
+ * ------------------------------------------------------------------ */
+.layout-onePair .titleCell.hindiCell,
+.layout-onePair .signatureCell.hindiCell {
+  text-align: right;
+}
+
+.layout-onePair .titleCell.urduCell,
+.layout-onePair .signatureCell.urduCell {
+  text-align: left;
+}
+
+/* Body: a single full-width, centered column. */
+.layout-onePair .onePairBody {
+  width: 100%;
+  text-align: center;
+}
+
+/* Each line sits on its own centered row; the line block itself is an
+ * inline-block (justified) created in JS.
+ * Deliberately NOT `overflow: hidden` — Nastaliq descenders reach below the
+ * row box and clipping them cut the tails off the text. They paint into the
+ * neighbouring row instead; `.mainFrame` still clips at the image edge. */
+.layout-onePair .centerRow {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* "n of N" at the bottom centre of the page. */
+.layout-onePair .pageNumber {
+  position: absolute;
+  left: 100px;
+  right: 100px;
+  bottom: 100px;
+  height: 150px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: 24px;
+  pointer-events: none;
+}

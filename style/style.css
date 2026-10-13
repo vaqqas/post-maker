@@ -1,0 +1,280 @@
+/* ------------------------------------------------------------------ *
+ * Postmaker styles
+ * ------------------------------------------------------------------ */
+
+body {
+  background-color: #f2f2f2;
+}
+
+/* ------------------------------------------------------------------ *
+ * The render frame — this is the area html2canvas captures.
+ * Fixed at the output resolution: 1080 x 1350.
+ * Borders from layout.html are intentionally removed (they were only
+ * there for testing the layout).
+ * ------------------------------------------------------------------ */
+.mainFrame {
+  padding: 100px;
+  width: 1080px;
+  height: 1350px;
+  max-width: 1080px;
+  max-height: 1350px;
+  box-sizing: border-box;
+  overflow: hidden; /* never let content push past 1080 x 1350 */
+  position: relative; /* containing block for the absolutely-pinned footer */
+}
+
+/* ------------------------------------------------------------------ *
+ * Vertical structure (normal flow, NOT flexbox — html2canvas renders
+ * tables/normal-flow reliably but mangles flex). Common to both layouts:
+ *   Title (top) → gap → Body → gap → Signature → … → Footer (pinned).
+ * The gap margins are applied in app.js (BODY_GAP) so they stay equal; the
+ * footer (logo) is absolutely positioned so it stays fixed at the bottom.
+ * Layout-specific structure lives in style/layouts/*.css.
+ * ------------------------------------------------------------------ */
+.footerArea {
+  position: absolute;
+  left: 100px;
+  right: 100px;
+  bottom: 100px;
+  height: 150px;
+  overflow: hidden;
+}
+
+.logo {
+  text-align: right;
+  overflow: hidden;
+}
+
+.logo img {
+  width: auto;
+  max-height: 110px;
+  object-fit: contain;
+  position: absolute;
+  right: 0;
+  bottom: 0; /* logo pinned bottom-right, fixed size */
+}
+
+/* ------------------------------------------------------------------ *
+ * Two columns: Hindi (left) and Urdu (right), 50% each, 20px gap
+ * (10px padding on each inner edge). Title & signature use a 1-row table.
+ * ------------------------------------------------------------------ */
+.lineTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.lineTable td {
+  width: 50%;
+  box-sizing: border-box;
+  vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap; /* preserve typed line breaks */
+}
+
+.hindiCell {
+  padding-right: 10px;
+  direction: ltr;
+  text-align: left;
+}
+
+.urduCell {
+  padding-left: 10px;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Title & signature are centered in their own cell by default — this is the
+ * "Side by side" treatment, shared so that any layout wanting it (currently
+ * sideBySide and stack) gets it without restating the rule and drifting out of
+ * sync. It beats the `.hindiCell`/`.urduCell` text-align above on source order
+ * (equal specificity). A layout that wants something else overrides with a
+ * higher-specificity selector — see `.layout-onePair .titleCell.hindiCell`. */
+.titleCell,
+.signatureCell {
+  text-align: center;
+}
+
+/* Hindi title & signature sit at the bottom of their cell so they line up
+ * with the Urdu side. */
+.titleCell.hindiCell,
+.signatureCell.hindiCell {
+  vertical-align: bottom;
+}
+
+/* Title/signature alignment and the body structure are layout-specific —
+ * see style/layouts/side-by-side.css and style/layouts/one-pair.css. */
+
+/* ------------------------------------------------------------------ *
+ * Theme classes applied to .mainFrame
+ * ------------------------------------------------------------------ */
+.theme-dark {
+  background-color: #0a0a0a;
+  color: #fafafa;
+}
+
+.theme-light {
+  background-color: #fafafa;
+  color: #333333;
+}
+
+/* ------------------------------------------------------------------ *
+ * Debug outlines (preview only)
+ * Toggled by `.debug-borders` on #mainFrame. app.js strips the class before
+ * every html2canvas capture, so these never reach the generated PNG.
+ * `outline` (not `border`) is used deliberately: it takes no space, so the
+ * preview you inspect has exactly the same geometry as the export.
+ * ------------------------------------------------------------------ */
+:root {
+  --dbg-table: #e53935;
+  --dbg-row: #fb8c00;
+  --dbg-cell: #43a047;
+  --dbg-div: #1e88e5;
+  --dbg-span: #d81b60;
+  --dbg-img: #00acc1;
+}
+
+.mainFrame.debug-borders div,
+.mainFrame.debug-borders table,
+.mainFrame.debug-borders tr,
+.mainFrame.debug-borders td,
+.mainFrame.debug-borders span,
+.mainFrame.debug-borders img {
+  outline-width: 1px;
+  outline-style: solid;
+  outline-offset: -1px; /* draw inside the box so boxes don't overlap */
+}
+
+.mainFrame.debug-borders div {
+  outline-color: var(--dbg-div);
+}
+.mainFrame.debug-borders table {
+  outline-color: var(--dbg-table);
+}
+.mainFrame.debug-borders tr {
+  outline-color: var(--dbg-row);
+}
+.mainFrame.debug-borders td {
+  outline-color: var(--dbg-cell);
+}
+.mainFrame.debug-borders span {
+  outline-color: var(--dbg-span);
+}
+.mainFrame.debug-borders img {
+  outline-color: var(--dbg-img);
+}
+
+/* The frame itself gets a dashed outline so the 1080x1350 edge is visible. */
+.mainFrame.debug-borders {
+  outline: 1px dashed #6c757d;
+  outline-offset: -1px;
+}
+
+.debug-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.debug-legend span {
+  padding: 0 0.35rem;
+  border-radius: 0.2rem;
+  border: 1px solid currentColor;
+}
+
+.debug-legend .dbg-table {
+  color: var(--dbg-table);
+}
+.debug-legend .dbg-row {
+  color: var(--dbg-row);
+}
+.debug-legend .dbg-cell {
+  color: var(--dbg-cell);
+}
+.debug-legend .dbg-div {
+  color: var(--dbg-div);
+}
+.debug-legend .dbg-span {
+  color: var(--dbg-span);
+}
+.debug-legend .dbg-img {
+  color: var(--dbg-img);
+}
+
+/* Keep the on-page preview from overflowing small screens */
+.frame-wrapper {
+  overflow: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  background: #e9ecef;
+  padding: 1rem;
+}
+
+.result-img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+}
+
+/* Page navigation (preview) */
+#pageNav {
+  display: none;
+}
+
+#pageNav.show {
+  display: flex;
+}
+
+/* ------------------------------------------------------------------ *
+ * Collapsible language sections (native <details>/<summary>)
+ * ------------------------------------------------------------------ */
+.lang-section {
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.lang-summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #6c757d;
+  list-style-position: inside;
+}
+
+.lang-summary:hover {
+  color: #495057;
+}
+
+/* ------------------------------------------------------------------ *
+ * Per-element formatting controls (font size / bold / italic)
+ * ------------------------------------------------------------------ */
+.fmt-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; /* the Urdu signature row carries an extra Width box */
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.fmt-controls .fmt-size {
+  width: 5.5rem;
+}
+
+.fmt-controls .fmt-size-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.fmt-controls .btn.fmt-bold {
+  font-weight: 700;
+}
+
+.fmt-controls .btn.fmt-italic {
+  font-style: italic;
+}
