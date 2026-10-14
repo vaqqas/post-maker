@@ -21,6 +21,10 @@ body {
   box-sizing: border-box;
   overflow: hidden; /* never let content push past 1080 x 1350 */
   position: relative; /* containing block for the absolutely-pinned footer */
+  /* applyPreviewScale() shrinks the preview to fit narrow screens with a
+   * `scale()` transform; anchor it so the frame stays flush with the wrapper's
+   * top-left corner instead of scaling about its centre. */
+  transform-origin: top left;
 }
 
 /* ------------------------------------------------------------------ *
@@ -205,9 +209,21 @@ body {
   color: var(--dbg-img);
 }
 
-/* Keep the on-page preview from overflowing small screens */
+/* Keep the on-page preview from overflowing small screens.
+ * The frame is a fixed 1080px wide, so on anything narrower (a phone) it is
+ * scaled down to fit by applyPreviewScale(), which also pins this wrapper's
+ * height to the scaled height — a transform leaves the layout box full size,
+ * so without that the wrapper would still reserve all 1350px.
+ *
+ * `overflow: hidden`, NOT `auto` — IMPORTANT. The browser builds the scroll
+ * area from the frame's *untransformed* border box, so `scrollWidth` stays
+ * 1080 + padding however far down the preview is scaled; `auto` therefore
+ * showed scrollbars on both axes around a preview that already fitted. Nothing
+ * is clipped by hiding them: the frame is anchored top-left
+ * (`transform-origin`) and scaled to fit, so it lies entirely inside the
+ * visible box. */
 .frame-wrapper {
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid #dee2e6;
   border-radius: 0.5rem;
   background: #e9ecef;

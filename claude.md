@@ -144,6 +144,31 @@ post image and lets the user download it as a PNG.
 - Based on `layout.html` (kept for reference), borders removed.
 - `#mainFrame` is the capture target, hard-clamped to 1080 × 1350
   (`max-width`/`max-height` + `overflow: hidden`), `position: relative`.
+- **The preview is scaled to fit the screen — IMPORTANT.** 1080px is wider than
+  a phone (and wider than the Bootstrap column on most monitors), so
+  `applyPreviewScale()` shrinks `#mainFrame` to its wrapper with a `scale()`
+  transform (`transform-origin: top left`, set in `style.css`), recomputed on
+  `resize`. **It must stay a transform.** A transform doesn't change the layout
+  box, so `offsetWidth`/`offsetHeight`/`clientHeight` — and therefore
+  `measureTextWidth()`, `frameInnerHeight()`, `bodyCapacity()`, `fitRows()` —
+  still see the true 1080 × 1350 and the page lays out identically on a phone
+  and a monitor. Don't "simplify" this to `zoom`, or to shrinking the frame's
+  `width`/`height`: either changes the layout box and the preview would stop
+  matching the exported PNG. Nothing in the codebase may use
+  `getBoundingClientRect()` for layout maths for the same reason (it *is*
+  scaled); `offset*` only.
+  The transform is dropped for the whole capture via the same `capturing` flag
+  that hides the debug outlines — html2canvas 1.4.1 **does** honour transforms,
+  so leaving it on would export a shrunken, offset image. Verified: the PNG is
+  1080 × 1350 and byte-identical (same SHA-256 of the data URI) whether
+  generated at a 375px or a 641px viewport.
+  `.frame-wrapper` is `overflow: hidden`, **not** `auto`: the browser builds the
+  scroll area from the frame's *untransformed* border box, so `scrollWidth`
+  stays 1080 + padding however far the preview is scaled down, and `auto` put
+  scrollbars on both axes around a preview that already fitted. Nothing is
+  clipped — the frame is anchored top-left and scaled to fit. `app.js` also
+  pins the wrapper's height to the scaled height, since the untransformed
+  layout box would otherwise reserve all 1350px and leave a large gap.
 - Page margin is 100px (`.mainFrame` padding). The **top margin is adjustable**
   via the Top Margin input (`#topMarginInput`); `applyTopMargin()` sets
   `padding-top` and the body-fit calc uses `getTopMargin()`. Persisted in state.

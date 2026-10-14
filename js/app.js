@@ -121,6 +121,7 @@ const els = {
   debugLegend: document.getElementById("debugLegend"),
 
   frame: document.getElementById("mainFrame"),
+  frameWrapper: document.getElementById("frameWrapper"),
   bodyWarning: document.getElementById("bodyWarning"),
 
   pageNav: document.getElementById("pageNav"),
@@ -765,6 +766,62 @@ function applyDebugLegend() {
   );
 }
 
+// --- preview scaling ----------------------------------------------------
+// The frame is a fixed 1080 x 1350 — far wider than a phone screen — so the
+// preview is shrunk to fit its wrapper with a `scale()` transform.
+//
+// A transform does NOT change the layout box, which is what makes this safe:
+// every measurement in here (offsetWidth / offsetHeight / clientHeight, and so
+// `measureTextWidth()`, `frameInnerHeight()`, `bodyCapacity()`, …) still sees
+// the true 1080 x 1350 geometry, so line fitting and the capacity warning are
+// identical on a phone and on a monitor. Don't switch this to `zoom` or to
+// shrinking the frame's width/height — either would change the layout box and
+// the page would then lay out differently from the exported PNG.
+//
+// The transform is dropped for the duration of the capture via the same
+// `capturing` flag that hides the debug outlines: html2canvas 1.4.1 *does*
+// honour transforms, so leaving it on would export a shrunken, offset image.
+function previewScale() {
+  const wrap = els.frameWrapper;
+  if (!wrap) return 1;
+  const cs = getComputedStyle(wrap);
+  const avail =
+    wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  if (!(avail > 0)) return 1;
+  // -1px so floating-point rounding can't leave the frame a hair too wide and
+  // trip the wrapper's scrollbar.
+  return Math.min(1, (avail - 1) / OUTPUT_WIDTH);
+}
+
+function applyPreviewScale() {
+  const wrap = els.frameWrapper;
+  if (!wrap) return;
+
+  if (capturing) {
+    els.frame.style.transform = "none";
+    wrap.style.height = "";
+    return;
+  }
+
+  const k = previewScale();
+  els.frame.style.transform = k < 1 ? `scale(${k})` : "none";
+
+  if (k < 1) {
+    // The transform leaves the layout box at 1350px tall, so the wrapper would
+    // reserve the full height and leave a large gap under the shrunken frame.
+    // Pin it to the scaled height instead (border-box: add padding + border).
+    const cs = getComputedStyle(wrap);
+    const extra =
+      parseFloat(cs.paddingTop) +
+      parseFloat(cs.paddingBottom) +
+      parseFloat(cs.borderTopWidth) +
+      parseFloat(cs.borderBottomWidth);
+    wrap.style.height = `${Math.ceil(OUTPUT_HEIGHT * k + extra)}px`;
+  } else {
+    wrap.style.height = "";
+  }
+}
+
 // Apply the frame-level styling (theme, layout, top margin, background) that is
 // shared by every layout. Inline styles persist across innerHTML rebuilds.
 function applyFrameChrome() {
@@ -774,6 +831,7 @@ function applyFrameChrome() {
     (debugBordersOn() ? " debug-borders" : "");
   applyTopMargin();
   applyBackground();
+  applyPreviewScale();
 }
 
 // Render the current page of the current layout into #mainFrame.
@@ -1131,6 +1189,11 @@ function init() {
       els.generateBtn.textContent = "Generate Image";
     }
   });
+
+  // Re-fit the preview when the viewport changes (phone rotation, window
+  // resize). Only the scale depends on the viewport — the layout itself is
+  // measured in output pixels — so there is no need to re-render the page.
+  window.addEventListener("resize", applyPreviewScale);
 
   refreshLayout();
 }
